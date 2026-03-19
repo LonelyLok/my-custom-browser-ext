@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "My Custom Browser Extension",
+  "version": "0.0.1",
+  "description": "Starter Chrome extension structure.",
+  "permissions": ["tabs", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.twitch.tv/*",
+        "https://www.reddit.com/*",
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "route-hook.js"
+      ],
+      "matches": [
+        "https://www.twitch.tv/*"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "My Custom Browser Extension"
+  }
+}
