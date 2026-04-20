@@ -10,6 +10,8 @@ const FOOTER_SELECTOR = "#twilight-sticky-footer-root";
 const HIDDEN_FOOTER_ATTR = "data-myext-hidden-footer";
 
 export function runTwitchContent() {
+  let isExtensionContextValid = true;
+
   function isHomepage() {
     return location.pathname === "/" || location.pathname === "";
   }
@@ -23,11 +25,31 @@ export function runTwitchContent() {
   let muteDuringAdEnabled = defaultSettings.twitch.muteDuringAd;
   let lastAdState = false;
 
+  function sendTwitchAdState(isAdPlaying: boolean) {
+    if (!isExtensionContextValid) {
+      return;
+    }
+
+    try {
+      chrome.runtime.sendMessage({ type: "TWITCH_AD_STATE", isAdPlaying });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Extension context invalidated")
+      ) {
+        isExtensionContextValid = false;
+        return;
+      }
+
+      throw error;
+    }
+  }
+
   setInterval(() => {
     if (isHomepage()) {
       if (lastAdState) {
         lastAdState = false;
-        chrome.runtime.sendMessage({ type: "TWITCH_AD_STATE", isAdPlaying: false });
+        sendTwitchAdState(false);
       }
       return;
     }
@@ -35,10 +57,7 @@ export function runTwitchContent() {
     const adPlaying = isAdPlaying();
     if (adPlaying !== lastAdState) {
       lastAdState = adPlaying;
-      chrome.runtime.sendMessage({
-        type: "TWITCH_AD_STATE",
-        isAdPlaying: muteDuringAdEnabled ? adPlaying : false,
-      });
+      sendTwitchAdState(muteDuringAdEnabled ? adPlaying : false);
     }
   }, 3000);
 
@@ -133,10 +152,7 @@ export function runTwitchContent() {
   }
 
   function applyMuteDuringAdSetting() {
-    chrome.runtime.sendMessage({
-      type: "TWITCH_AD_STATE",
-      isAdPlaying: muteDuringAdEnabled ? lastAdState : false,
-    });
+    sendTwitchAdState(muteDuringAdEnabled ? lastAdState : false);
   }
 
   function onRouteChange() {

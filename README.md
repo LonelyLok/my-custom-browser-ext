@@ -1,6 +1,6 @@
 # my-custom-browser-ext
 
-A browser extension that applies custom rules and actions to specific websites, such as Twitch, Reddit, and YouTube.
+A browser extension that applies custom rules and actions to specific websites, such as Twitch, LinkedIn, Reddit, and YouTube.
 
 ## Features
 
@@ -8,6 +8,9 @@ For Twitch:
 - Disable home page auto play
 - Disable footer
 - Auto mute audio during ads
+
+For LinkedIn:
+- Support wired in for future job-search filtering
 
 For Reddit:
 - Hide games drawer

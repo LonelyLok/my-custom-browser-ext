@@ -11,6 +11,7 @@
     {
       "matches": [
         "https://www.twitch.tv/*",
+        "https://www.linkedin.com/*",
         "https://www.reddit.com/*",
         "https://www.youtube.com/*"
       ],

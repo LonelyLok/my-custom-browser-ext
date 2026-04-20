@@ -21,6 +21,10 @@ declare namespace chrome {
   }
 
   namespace tabs {
+    function query(
+      queryInfo: { active?: boolean; currentWindow?: boolean },
+      callback: (tabs: Array<{ id?: number; url?: string }>) => void,
+    ): void;
     function update(tabId: number, updateProperties: { muted: boolean }): void;
   }
 

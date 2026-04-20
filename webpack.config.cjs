@@ -40,6 +40,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
+    assetModuleFilename: "assets/[name][ext]",
     clean: true,
   },
   resolve: {
@@ -56,6 +57,10 @@ module.exports = {
             configFile: "tsconfig.build.json",
           },
         },
+      },
+      {
+        test: /\.(png|svg)$/i,
+        type: "asset/resource",
       },
     ],
   },

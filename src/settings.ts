@@ -4,6 +4,11 @@ export type ExtensionSettings = {
     disableFooter: boolean;
     muteDuringAd: boolean;
   };
+  linkedin: {
+    hideEasyApplyJobs: boolean;
+    hideCompanyNames: boolean;
+    companyNamesText: string;
+  };
   reddit: {
     hideGamesDrawer: boolean;
   };
@@ -20,6 +25,11 @@ export const defaultSettings: ExtensionSettings = {
     disableHomepageAutoplay: true,
     disableFooter: true,
     muteDuringAd: true,
+  },
+  linkedin: {
+    hideEasyApplyJobs: true,
+    hideCompanyNames: true,
+    companyNamesText: "",
   },
   reddit: {
     hideGamesDrawer: true,
@@ -42,6 +52,14 @@ export function mergeSettings(
         partial?.twitch?.disableFooter ?? defaultSettings.twitch.disableFooter,
       muteDuringAd:
         partial?.twitch?.muteDuringAd ?? defaultSettings.twitch.muteDuringAd,
+    },
+    linkedin: {
+      hideEasyApplyJobs:
+        partial?.linkedin?.hideEasyApplyJobs ?? defaultSettings.linkedin.hideEasyApplyJobs,
+      hideCompanyNames:
+        partial?.linkedin?.hideCompanyNames ?? defaultSettings.linkedin.hideCompanyNames,
+      companyNamesText:
+        partial?.linkedin?.companyNamesText ?? defaultSettings.linkedin.companyNamesText,
     },
     reddit: {
       hideGamesDrawer:

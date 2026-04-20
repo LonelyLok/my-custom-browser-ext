@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { SETTINGS_STORAGE_KEY, defaultSettings, mergeSettings, type ExtensionSettings } from "../settings";
+import linkedinIcon from "../assets/tab-icon/linkedin.png";
+import redditIcon from "../assets/tab-icon/reddit.png";
+import twitchIcon from "../assets/tab-icon/twitch.png";
+import youtubeIcon from "../assets/tab-icon/youtube.png";
 
-type TabKey = "twitch" | "reddit" | "youtube";
+type TabKey = "twitch" | "linkedin" | "reddit" | "youtube";
 
 type ToggleRowProps = {
   checked: boolean;
@@ -15,6 +19,37 @@ type ExpandableToggleRowProps = ToggleRowProps & {
   onToggleExpanded: () => void;
   children?: React.ReactNode;
 };
+
+const tabIcons: Record<TabKey, { src: string; alt: string }> = {
+  twitch: { src: twitchIcon, alt: "Twitch" },
+  linkedin: { src: linkedinIcon, alt: "LinkedIn" },
+  reddit: { src: redditIcon, alt: "Reddit" },
+  youtube: { src: youtubeIcon, alt: "YouTube" },
+};
+
+function getTabFromUrl(url?: string): TabKey | null {
+  if (!url) {
+    return null;
+  }
+
+  if (url.startsWith("https://www.twitch.tv/")) {
+    return "twitch";
+  }
+
+  if (url.startsWith("https://www.linkedin.com/")) {
+    return "linkedin";
+  }
+
+  if (url.startsWith("https://www.reddit.com/")) {
+    return "reddit";
+  }
+
+  if (url.startsWith("https://www.youtube.com/")) {
+    return "youtube";
+  }
+
+  return null;
+}
 
 function ToggleRow({ checked, label, onChange }: ToggleRowProps) {
   return (
@@ -153,6 +188,7 @@ function ExpandableToggleRow({
 function Popup() {
   const [activeTab, setActiveTab] = useState<TabKey>("twitch");
   const [settings, setSettings] = useState<ExtensionSettings>(defaultSettings);
+  const [linkedinCompanyNamesExpanded, setLinkedinCompanyNamesExpanded] = useState(false);
   const [youtubeSpeedExpanded, setYoutubeSpeedExpanded] = useState(false);
 
   useEffect(() => {
@@ -161,6 +197,13 @@ function Popup() {
         ExtensionSettings
       > | undefined);
       setSettings(nextSettings);
+    });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const matchedTab = getTabFromUrl(tabs[0]?.url);
+      if (matchedTab) {
+        setActiveTab(matchedTab);
+      }
     });
   }, []);
 
@@ -171,18 +214,21 @@ function Popup() {
 
   const tabButtonStyle = (tab: TabKey) => ({
     flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     border: "1px solid rgba(255, 255, 255, 0.08)",
     borderRadius: "10px",
-    padding: "9px 12px",
+    padding: "9px 8px",
     background:
       activeTab === tab
         ? "linear-gradient(180deg, rgba(249, 115, 22, 0.28) 0%, rgba(249, 115, 22, 0.12) 100%)"
         : "rgba(255, 255, 255, 0.03)",
     color: activeTab === tab ? "#fff3eb" : "#9aa4b2",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
-    letterSpacing: "0.04em",
-    textTransform: "uppercase" as const,
+    letterSpacing: "0.02em",
+    textTransform: "none" as const,
     cursor: "pointer",
     transition: "background 160ms ease, color 160ms ease, border-color 160ms ease",
   });
@@ -227,7 +273,7 @@ function Popup() {
             borderRadius: "16px",
             padding: "14px",
             background: "rgba(9, 10, 14, 0.42)",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
+            border: "1px solid rgba(255, 255, 255, 0.06)",
           }}
         >
           <div>
@@ -264,19 +310,32 @@ function Popup() {
           >
             <div
               style={{
-                display: "flex",
+                display: "grid",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                 gap: "8px",
               }}
             >
-              <button onClick={() => setActiveTab("twitch")} style={tabButtonStyle("twitch")}>
-                Twitch
-              </button>
-              <button onClick={() => setActiveTab("reddit")} style={tabButtonStyle("reddit")}>
-                Reddit
-              </button>
-              <button onClick={() => setActiveTab("youtube")} style={tabButtonStyle("youtube")}>
-                YouTube
-              </button>
+              {(["twitch", "linkedin", "reddit", "youtube"] as const).map((tab) => (
+                <button
+                  aria-label={tabIcons[tab].alt}
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={tabButtonStyle(tab)}
+                  type="button"
+                >
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    src={tabIcons[tab].src}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      objectFit: "contain",
+                      opacity: activeTab === tab ? 1 : 0.85,
+                    }}
+                  />
+                </button>
+              ))}
             </div>
 
             <div
@@ -339,6 +398,78 @@ function Popup() {
                       })
                     }
                   />
+                </>
+              ) : activeTab === "linkedin" ? (
+                <>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#9aa4b2",
+                      fontSize: "11px",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    LinkedIn Settings
+                  </p>
+                  <ToggleRow
+                    checked={settings.linkedin.hideEasyApplyJobs}
+                    label="Hide Easy Apply jobs"
+                    onChange={() =>
+                      updateSettings({
+                        ...settings,
+                        linkedin: {
+                          ...settings.linkedin,
+                          hideEasyApplyJobs: !settings.linkedin.hideEasyApplyJobs,
+                        },
+                      })
+                    }
+                  />
+                  <ExpandableToggleRow
+                    checked={settings.linkedin.hideCompanyNames}
+                    expanded={linkedinCompanyNamesExpanded}
+                    label="Hide jobs base off company names"
+                    onChange={() =>
+                      updateSettings({
+                        ...settings,
+                        linkedin: {
+                          ...settings.linkedin,
+                          hideCompanyNames: !settings.linkedin.hideCompanyNames,
+                        },
+                      })
+                    }
+                    onToggleExpanded={() =>
+                      setLinkedinCompanyNamesExpanded((value) => !value)
+                    }
+                  >
+                    <textarea
+                      onChange={(event) =>
+                        updateSettings({
+                          ...settings,
+                          linkedin: {
+                            ...settings.linkedin,
+                            companyNamesText: event.target.value,
+                          },
+                        })
+                      }
+                      placeholder="One company name per line"
+                      style={{
+                        width: "100%",
+                        minHeight: "96px",
+                        maxHeight: "140px",
+                        resize: "none",
+                        overflowY: "auto",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        color: "#f5f7fa",
+                        padding: "8px 10px",
+                        outline: "none",
+                        lineHeight: 1.45,
+                      }}
+                      value={settings.linkedin.companyNamesText}
+                    />
+                  </ExpandableToggleRow>
                 </>
               ) : activeTab === "reddit" ? (
                 <>
