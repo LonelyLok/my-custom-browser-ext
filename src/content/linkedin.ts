@@ -1,7 +1,9 @@
 import { SETTINGS_STORAGE_KEY, defaultSettings, mergeSettings } from "../settings";
 
-const JOB_CARD_SELECTOR = 'li[data-occludable-job-id]';
-const COMPANY_NAME_SELECTOR = ".artdeco-entity-lockup__subtitle span[dir='ltr']";
+const JOB_CARD_SELECTOR =
+  'div:has(> div[data-display-contents="true"] > div[role="button"][componentkey^="job-card-component-ref-"])';
+const COMPANY_NAME_SELECTOR =
+  'div[data-display-contents="true"]:has(> p) + div > p';
 const DISMISS_BUTTON_SELECTOR = 'button[aria-label*="Dismiss"]';
 const HIDDEN_JOB_ATTR = "data-myext-hidden-linkedin-job";
 const DISMISSED_JOB_ATTR = "data-myext-dismissed-linkedin-job";
@@ -16,7 +18,12 @@ function getCompanyName(card: Element) {
 }
 
 function isEasyApplyJob(card: Element) {
-  return card.textContent?.includes("Easy Apply") ?? false;
+  const hasEasyApplyText = card.textContent?.includes("Easy Apply") ?? false;
+  const hasLinkedInApplyMarker = Array.from(
+    card.querySelectorAll("svg#linkedin-bug-small ~ p"),
+  ).some((label) => label.textContent?.trim().toLowerCase() === "apply");
+
+  return hasEasyApplyText || hasLinkedInApplyMarker;
 }
 
 function parseCompanyNames(value: string) {
