@@ -1,9 +1,13 @@
 import { SETTINGS_STORAGE_KEY, defaultSettings, mergeSettings } from "../settings";
 
-const JOB_CARD_SELECTOR =
-  'div:has(> div[data-display-contents="true"] > div[role="button"][componentkey^="job-card-component-ref-"])';
-const COMPANY_NAME_SELECTOR =
-  'div[data-display-contents="true"]:has(> p) + div > p';
+const JOB_CARD_SELECTOR = [
+  'li[data-occludable-job-id]',
+  'div:has(> div[data-display-contents="true"] > div[role="button"][componentkey^="job-card-component-ref-"])',
+].join(", ");
+const COMPANY_NAME_SELECTOR = [
+  ".artdeco-entity-lockup__subtitle span[dir='ltr']",
+  'div[data-display-contents="true"]:has(> p) + div > p',
+].join(", ");
 const DISMISS_BUTTON_SELECTOR = 'button[aria-label*="Dismiss"]';
 const HIDDEN_JOB_ATTR = "data-myext-hidden-linkedin-job";
 const DISMISSED_JOB_ATTR = "data-myext-dismissed-linkedin-job";
@@ -22,8 +26,10 @@ function isEasyApplyJob(card: Element) {
   const hasLinkedInApplyMarker = Array.from(
     card.querySelectorAll("svg#linkedin-bug-small ~ p"),
   ).some((label) => label.textContent?.trim().toLowerCase() === "apply");
+  const hasLinkedInApplyImage =
+    card.querySelector('image[href*="/7qvn5nkkh1mlaqd5xm0radtjv"]') !== null;
 
-  return hasEasyApplyText || hasLinkedInApplyMarker;
+  return hasEasyApplyText || hasLinkedInApplyMarker || hasLinkedInApplyImage;
 }
 
 function parseCompanyNames(value: string) {
